@@ -18,4 +18,5 @@ print("feature names out: ", vectorizer.get_feature_names_out())
 print("vectorizer.vocabulary_: ", vectorizer.vocabulary_)
 print("type of bow variable: ", (type(bow)))
 print("raw bow: ", bow)
+# ADD PRINTING THAT AS PANDAS DATAFRAME
 print("\n ================================ \n")
