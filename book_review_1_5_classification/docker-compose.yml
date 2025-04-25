@@ -16,4 +16,6 @@ services:
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
       - HIP_VISIBLE_DEVICES=0
     shm_size: 8G
-    command: bash -c "pip install -r requirements.txt --quiet && python main.py"
+    command: bash -c "pip install -r requirements.txt --quiet --root-user-action=ignore && python train_models.py"
+    tty: true
+    stdin_open: true
