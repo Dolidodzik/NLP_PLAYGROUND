@@ -11,7 +11,7 @@ c = -8
 d = 10
 maximum_noise = 0.5
 pairs_count = 500
-x_range = 100
+x_range = 5
 
 filename = f"REGRESSION_OF_FUNCTION_a={a}_b={b}_c={c}_d={d}.csv"
 

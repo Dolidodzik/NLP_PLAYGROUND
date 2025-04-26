@@ -26,20 +26,15 @@ print(f"Validation dataset length: {validation_dataset_length}")
 
 # Initializing parameters randomly
 params = {
-    'a': np.random.uniform(10, -10),
-    'b': np.random.uniform(10, -10),
-    'c': np.random.uniform(10, -10),
-    'd': np.random.uniform(10, -10)
+    'a': 11,
+    'b': 11,
+    'c': 11,
+    'd': 11
 }
 
 # HYPER PARAMETERS
-learning_rate = 0.05
-epochs = 220
-
-a_learning_rate = learning_rate ** 3
-b_learning_rate = learning_rate ** 2
-c_learning_rate = 20 * learning_rate
-d_learning_rate = learning_rate
+learning_rate = 0.001
+epochs = 10
 
 # Mean Squared Error (MSE) Loss function
 def mse_loss(y_true, y_pred):
@@ -58,18 +53,28 @@ def train_epoch(params):
         loss = mse_loss(np.array([y_true]), np.array([y_pred]))
         total_loss += loss
 
-        # adjust a,b,c,d randomly and if it results in lower loss then save new values
+        # adjust a,b,c,d using gradients
+        common_factor = -2 * (y_true - y_pred)
+        gradient_a = common_factor * x**3
+        gradient_b = common_factor * x**2
+        gradient_c = common_factor * x
+        gradient_d = common_factor * 1
+
         new_params = {
-            'a': params['a'] + np.random.uniform(a_learning_rate, -a_learning_rate),
-            'b': params['b'] + np.random.uniform(b_learning_rate, -b_learning_rate),
-            'c': params['c'] + np.random.uniform(c_learning_rate, -c_learning_rate),
-            'd': params['d'] + np.random.uniform(d_learning_rate, -d_learning_rate)
+            'a': params['a'] - learning_rate * gradient_a,
+            'b': params['b'] - learning_rate * gradient_b,
+            'c': params['c'] - learning_rate * gradient_c,
+            'd': params['d'] - learning_rate * gradient_d
         }
+
         new_y_pred = new_params['a'] * x**3 + new_params['b'] * x**2 + new_params['c'] * x + new_params['d']
         new_loss = mse_loss(np.array([y_true]), np.array([new_y_pred]))
-
+        
         if new_loss < loss:
             params = new_params
+        else:
+            pass
+            #print("gradient adjustment resulted in higher loss! we might be in a valley, or the learning rate is too big!")
 
     # Return the average loss for the epoch
     avg_loss = total_loss / train_dataset_length
@@ -112,20 +117,35 @@ def plot_graph(params):
     plt.show()
 
 if __name__ == "__main__":
+    current_params_validation_loss = validate(params)
     for epoch in range(epochs):
-
         if epoch % 1000 == 0:
             print(f"epoch {epoch} out of {epochs}")
         #print(f"\nEpoch {epoch + 1}/{epochs}")
 
-        train_loss, params = train_epoch(params)
-        validation_loss = validate(params)
+        train_loss, potential_new_params = train_epoch(params)
+        potential_new_params_validation_loss = validate(potential_new_params)
 
         print(f"Training Loss: {train_loss}, Parameters: {params}")
-        print(f"Validation Loss: {train_loss}, Parameters: {params}")
+        print(f"New potential params validation Loss: {potential_new_params_validation_loss}, Parameters: {params}")
+        print(f"Current params validation loss")
 
+        if current_params_validation_loss > potential_new_params_validation_loss:
+            print("found new better params!! ", potential_new_params)
+            current_params_validation_loss = potential_new_params_validation_loss
+            params = potential_new_params
+        else:
+            print("We haven't found better values over entire epoch! Something might be wrong!!!")
+
+        print("====================================================")
+        print("================ EPOCH ENDED =======================")
+        print("====================================================")
+
+    print("\n\n================================================================================")
     print("final params: ", params)
-    print("final vaildation loss: ", validation_loss)
+    print("final vaildation loss: ", current_params_validation_loss)
+    print("\n\n")
+    
     plot_graph(params)
 
         
