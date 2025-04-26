@@ -25,32 +25,25 @@ print(f"Loaded validation dataset from {validation_dataset_filename}:")
 print(f"Validation dataset length: {validation_dataset_length}")
 
 # Initializing parameters randomly
-'''
 params = {
     'a': np.random.uniform(10, -10),
     'b': np.random.uniform(10, -10),
     'c': np.random.uniform(10, -10),
     'd': np.random.uniform(10, -10)
-}'''
-params = {
-    'a': 0.99,
-    'b': -1.91,
-    'c': 2.61,
-    'd': 11.01
 }
 
 # HYPER PARAMETERS
-learning_rate = 0.005
-epochs = 9999
+learning_rate = 0.05
+epochs = 220
 
-a_learning_rate = 0
-b_learning_rate = 0
+a_learning_rate = learning_rate ** 3
+b_learning_rate = learning_rate ** 2
 c_learning_rate = 20 * learning_rate
 d_learning_rate = learning_rate
 
 # Mean Squared Error (MSE) Loss function
 def mse_loss(y_true, y_pred):
-    return np.mean((y_true - y_pred) ** 2)
+    return (y_true - y_pred) ** 2
 
 def train_epoch(params):
     total_loss = 0
@@ -119,19 +112,20 @@ def plot_graph(params):
     plt.show()
 
 if __name__ == "__main__":
-    current_params_validation_loss = validate(params)
     for epoch in range(epochs):
+
         if epoch % 1000 == 0:
             print(f"epoch {epoch} out of {epochs}")
         #print(f"\nEpoch {epoch + 1}/{epochs}")
 
-        train_loss, new_epoch_params = train_epoch(params)
-        #print(f"Training Loss: {train_loss}, Parameters: {params}")
+        train_loss, params = train_epoch(params)
+        validation_loss = validate(params)
 
-        new_epoch_params_loss = validate(new_epoch_params)
-        if new_epoch_params_loss < current_params_validation_loss:
-            params = new_epoch_params
-    plot_graph(params)
+        print(f"Training Loss: {train_loss}, Parameters: {params}")
+        print(f"Validation Loss: {train_loss}, Parameters: {params}")
+
     print("final params: ", params)
-    print("final vaildation loss: ", current_params_validation_loss)
+    print("final vaildation loss: ", validation_loss)
+    plot_graph(params)
+
         
