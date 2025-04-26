@@ -26,15 +26,15 @@ print(f"Validation dataset length: {validation_dataset_length}")
 
 # Initializing parameters randomly
 params = {
-    'a': 11,
-    'b': 11,
-    'c': 11,
-    'd': 11
+    'a': 0,
+    'b': 0,
+    'c': 0,
+    'd': 0
 }
 
 # HYPER PARAMETERS
-learning_rate = 0.001
-epochs = 10
+learning_rate = 0.01
+epochs = 500
 
 # Mean Squared Error (MSE) Loss function
 def mse_loss(y_true, y_pred):
@@ -119,9 +119,8 @@ def plot_graph(params):
 if __name__ == "__main__":
     current_params_validation_loss = validate(params)
     for epoch in range(epochs):
-        if epoch % 1000 == 0:
-            print(f"epoch {epoch} out of {epochs}")
-        #print(f"\nEpoch {epoch + 1}/{epochs}")
+        if epoch % 1 == 0:
+            print(f"epoch {epoch+1} out of {epochs}")
 
         train_loss, potential_new_params = train_epoch(params)
         potential_new_params_validation_loss = validate(potential_new_params)
