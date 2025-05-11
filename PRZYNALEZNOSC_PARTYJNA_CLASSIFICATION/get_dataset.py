@@ -20,3 +20,5 @@ for deputy in deputies:
         members_by_club.setdefault(club, []).append(info)
     
 print(members_by_club)
+
+# https://api.sejm.gov.pl/sejm/term10/proceedings/1/2023-11-13/transcripts
