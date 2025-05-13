@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
+import pandas as pd
 
 
 CLUBS_WHITELIST = ["Razem", "Lewica", "Polska2050-TD", "PSL-TD", "KO", "PiS", "Konfederacja"] # we want to exclude deputies from unknown/noname clubs
@@ -18,17 +19,23 @@ response = requests.get(DEPUTIES_URI)
 response.raise_for_status()
 deputies = response.json()
 
-members_by_club = {club: [] for club in CLUBS_WHITELIST}
+# Create a mapping of member ID to club and name for later use
+member_info = {}
 for deputy in deputies:
     club = deputy.get("club")
     firstLastName = deputy.get("firstLastName")
     id = deputy.get("id")
     if club in CLUBS_WHITELIST and firstLastName and id:
-        info = {"firstLastName": firstLastName, "id": id, "statements": []}
-        members_by_club.setdefault(club, []).append(info)
+        member_info[id] = {
+            "firstLastName": firstLastName,
+            "club": club
+        }
+
+# Create an empty DataFrame with the required columns
+df = pd.DataFrame(columns=["member_id", "first_last_name", "club", "statement"])
     
 print("\nfound members: ")
-print(members_by_club)
+print(member_info)
 
 
 # getting list of proceedings from 2023-2027 cadence (10)
@@ -83,9 +90,10 @@ def extract_blockquote_text(html: str) -> str:
     text = blk.get_text(separator='\n', strip=True)
     return text
 
+
 for filtered_proceeding in filtered_proceedings:
-   for date in filtered_proceeding['dates']:
-        print("getting transcripts lists for date: ",)
+    for date in filtered_proceeding['dates']:
+        print(f"getting transcripts lists for date: {date}")
         TRANSCRIPTS_LIST_URL = f"https://api.sejm.gov.pl/sejm/term10/proceedings/{filtered_proceeding['number']}/{date}/transcripts/"
         response = requests.get(TRANSCRIPTS_LIST_URL)
         response.raise_for_status()
@@ -98,12 +106,24 @@ for filtered_proceeding in filtered_proceedings:
             raw_transcript_text = response.text
 
             pure_text = extract_blockquote_text(raw_transcript_text)
-            if pure_text:
-                print("hoorayy we have good pure text")
-            else:
-                print("No <blockquote> found. Ignoring that statement")
+            member_id = statement.get('memberID')
+            
+            if pure_text and member_id in member_info:
+                # Add a new row to the DataFrame for each statement
+                new_row = {
+                    "member_id": member_id,
+                    "first_last_name": member_info[member_id]["firstLastName"],
+                    "club": member_info[member_id]["club"],
+                    "statement": pure_text
+                }
+                df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    break
 
+# Save the DataFrame to a CSV file
+df.to_csv('statements_data.csv', index=False, encoding='utf-8')
 
+print(f"Total statements collected: {len(df)}")
+print("Data saved to statements_data.csv")
 
 
 # https://api.sejm.gov.pl/sejm/term10/proceedings/1/2023-11-13/transcripts
