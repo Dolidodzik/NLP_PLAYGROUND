@@ -5,8 +5,8 @@ import pandas as pd
 
 
 CLUBS_WHITELIST = ["Razem", "Lewica", "Polska2050-TD", "PSL-TD", "KO", "PiS", "Konfederacja"] # we want to exclude deputies from unknown/noname clubs
-OLDEST_DATE = "2025-01-01" # we only want speeches from 2025 or newer
-NEWEST_DATE = "2025-05-12" # we dont want speeches newer than today (we exclude planned proceedings that havent yet take place), cannot be newer than yesterday
+OLDEST_DATE = "2023-12-12"
+NEWEST_DATE = "2024-12-31"
 
 
 OLDEST_DATETIME = datetime.strptime(OLDEST_DATE, "%Y-%m-%d")
@@ -32,7 +32,7 @@ for deputy in deputies:
         }
 
 # Create an empty DataFrame with the required columns
-df = pd.DataFrame(columns=["member_id", "first_last_name", "club", "statement"])
+df = pd.DataFrame(columns=["member_id", "first_last_name", "club", "statement", "date"])
     
 print("\nfound members: ")
 print(member_info)
@@ -100,30 +100,31 @@ for filtered_proceeding in filtered_proceedings:
         raw_transcripts_list = response.json()
 
         for statement in raw_transcripts_list['statements']:
-            TRANSCRIPTS_RAW_TEXT_URL = f"https://api.sejm.gov.pl/sejm/term10/proceedings/{filtered_proceeding['number']}/{date}/transcripts/{statement['num']}"
-            response = requests.get(TRANSCRIPTS_RAW_TEXT_URL)
-            response.raise_for_status()
-            raw_transcript_text = response.text
+            try:
+                TRANSCRIPTS_RAW_TEXT_URL = f"https://api.sejm.gov.pl/sejm/term10/proceedings/{filtered_proceeding['number']}/{date}/transcripts/{statement['num']}"
+                response = requests.get(TRANSCRIPTS_RAW_TEXT_URL)
+                response.raise_for_status()
+                raw_transcript_text = response.text
 
-            pure_text = extract_blockquote_text(raw_transcript_text)
-            member_id = statement.get('memberID')
-            
-            if pure_text and member_id in member_info:
-                # Add a new row to the DataFrame for each statement
-                new_row = {
-                    "member_id": member_id,
-                    "first_last_name": member_info[member_id]["firstLastName"],
-                    "club": member_info[member_id]["club"],
-                    "statement": pure_text
-                }
-                df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    break
+                pure_text = extract_blockquote_text(raw_transcript_text)
+                member_id = statement.get('memberID')
+                
+                if pure_text and member_id in member_info:
+                    # Add a new row to the DataFrame for each statement
+                    new_row = {
+                        "member_id": member_id,
+                        "first_last_name": member_info[member_id]["firstLastName"],
+                        "club": member_info[member_id]["club"],
+                        "statement": pure_text,
+                        "date": date
+                    }
+                    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+            except Exception as e:
+                print("cos sie zjebalo ", e) 
+                continue
 
 # Save the DataFrame to a CSV file
 df.to_csv('statements_data.csv', index=False, encoding='utf-8')
 
 print(f"Total statements collected: {len(df)}")
 print("Data saved to statements_data.csv")
-
-
-# https://api.sejm.gov.pl/sejm/term10/proceedings/1/2023-11-13/transcripts
