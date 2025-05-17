@@ -3,8 +3,8 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import numpy as np
 
 # === CONFIGURATION ===
-MODEL_NAME = 'sdadas/polish-distilroberta'
-CHECKPOINT_PATH = 'best_model.bin'  # path to your fine-tuned weights
+MODEL_NAME = 'dkleczek/bert-base-polish-uncased-v1'
+CHECKPOINT_PATH = 'best_model_brier.bin'  # path to your fine-tuned weights
 LABELS = ['PSL-TD', 'Polska2050-TD', 'PiS', 'KO', 'Konfederacja', 'Lewica', 'Razem']  # replace with your actual classes
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -20,7 +20,7 @@ model.eval()
 
 # === INPUT TEXT ===n
 text = '''
-kocham adriana zandberga kocham marceline zawisze
+Prawo do abrocji to podstawowe prawo kobiet, wierzę w socjaldemokrację, nienawidzę neoliberalnej propagandy. Dobre finansowanie badań i rozwoju, dobre finansowanie służby zdrowia. Mówimy nie dla prywatyzacji służby zdrowia. Kocham państwa skandynawskie, powinniśmy brać z nich przykład. Koniecznie musimy zapobiec zmniejszeniu składki na służbę zdrowia. Koniecznie musimy wprowadzić wysokie progresywne podatki.
 '''
 
 # === TOKENIZE & INFER ===
