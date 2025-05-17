@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  nlp-training:
+    image: rocm/pytorch:latest
+    container_name: polish-political-parties-classifier
+    devices:
+      - /dev/kfd
+      - /dev/dri/renderD128
+    group_add:
+      - video
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+      - HIP_VISIBLE_DEVICES=0
+    shm_size: 8G
+    command: bash -c "pip install -r requirements.txt --quiet --root-user-action=ignore && python training.py"
+    tty: true
+    stdin_open: true
